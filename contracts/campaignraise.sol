@@ -17,15 +17,20 @@ contract Campaignraiser{
         bool complete;
         uint contributor_approval_count;
         mapping(address => bool) totalapprovals;
-        
-
     }
 
 
-    constructor( ){
+    constructor(uint minmamount){
         manager = msg.sender;
+        mincontribution = minmamount;
     }
 
+    function contribute() public payable{
+        require(msg.value > mincontribution);
+
+        contributors[msg.sender] = true;
+        contributorsCount++;
+    }
 
 
 }
