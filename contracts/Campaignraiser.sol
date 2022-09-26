@@ -2,7 +2,23 @@
 
 pragma solidity ^0.8.9;
 
-contract Campaignraiser{
+
+contract Campaignraiserfactory {
+    
+    address payable[] public deployedCampaigns;
+
+    function createCampaign(uint min) public {
+        address newCampaign = address(new Campaignraiser(min, msg.sender));
+        deployedCampaigns.push(payable(newCampaign));
+    }
+
+    function getDeployedCampaigns() public view returns(address payable[] memory){
+        return deployedCampaigns;
+    }
+
+
+}
+contract Campaignraiser {
     
     
     uint public mincontribution;
@@ -21,8 +37,8 @@ contract Campaignraiser{
 
     Requests[] public requests;
 
-    constructor(uint minmamount){
-        manager = msg.sender;
+    constructor(uint minmamount, address _owner){
+        manager = _owner;
         mincontribution = minmamount;
     }
 
@@ -51,12 +67,12 @@ contract Campaignraiser{
         req.contributor_approval_count++;
      }
 
-    function finalizeRequest(uint index) public _onlyManger{
-        Request storage reqs = requests[index];
+    function finalizeRequest(uint index) public _onlyManager{
+        Requests storage reqs = requests[index];
         require(!reqs.complete);
-        require(reqs.contributor_approval_count > (totalapprovers / 2));
+        require(reqs.contributor_approval_count > ( contributorsCount / 2));
 
-        payable(request.recipient).transfer(request.value);
+        payable(reqs.receipient).transfer(reqs.value);
 
         reqs.complete = true;
 
@@ -66,15 +82,15 @@ contract Campaignraiser{
       uint, uint, uint, uint, address
       ) {
         return (
-          minimumContribution,
+          mincontribution,
           address(this).balance,
           requests.length,
-          approversCount,
+          contributorsCount,
           manager
         );
     }   
 
-        function getRequestsCount() public view returns (uint) {
+    function getRequestsCount() public view returns (uint) {
         return requests.length;
     }
     
